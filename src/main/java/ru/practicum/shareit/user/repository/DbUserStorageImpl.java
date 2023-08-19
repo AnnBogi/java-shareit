@@ -78,6 +78,7 @@ public abstract class DbUserStorageImpl implements UserStorage {
 
         return updateUser;
     }
+
     @Override
     public Boolean deleteUser(Long userId) {
         final String sqlQuery = "DELETE FROM users " +
