@@ -66,7 +66,7 @@ public class DbItemStorageImpl implements ItemStorage {
     public Item updateItem(Long userId, Long itemId, Item item) {
         Item updatedItem = getItem(itemId);
 
-        if (!Objects.equals(updatedItem.getOwner().getId(), userId)) {
+        if (!updatedItem.getOwner().getId().equals(userId)) {
             throw new ObjectNotFoundException("User don't have access to this item.");
         }
 

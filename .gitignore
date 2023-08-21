@@ -38,3 +38,4 @@ build/
 !/target/
 !/.idea/
 
+!/shareit.iml
