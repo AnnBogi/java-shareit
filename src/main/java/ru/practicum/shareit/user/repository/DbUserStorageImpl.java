@@ -16,7 +16,7 @@ import java.util.Objects;
 
 @Repository
 @RequiredArgsConstructor
-public abstract class DbUserStorageImpl implements UserStorage {
+public class DbUserStorageImpl implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -29,7 +29,14 @@ public abstract class DbUserStorageImpl implements UserStorage {
         return jdbcTemplate.query(sqlQuery, this::mapRow);
     }
 
+    @Override
+    public User getUser(Long id) {
+        final String sqlQuery = "SELECT * " +
+                "FROM users " +
+                "WHERE id = ? ";
 
+        return jdbcTemplate.queryForObject(sqlQuery, this::mapRow, id);
+    }
 
     @Override
     public User addUser(User user) {
@@ -48,9 +55,6 @@ public abstract class DbUserStorageImpl implements UserStorage {
         user.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
         return user;
     }
-
-
-
 
     @Override
     public User updateUser(Long userId, User user) {

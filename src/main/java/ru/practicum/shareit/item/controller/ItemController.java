@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.exception.ErrorHandler;
 
 import java.util.List;
 
@@ -19,63 +18,34 @@ public class ItemController {
 
     @GetMapping
     public List<Item> getItems(@RequestHeader(USERID_HEADER) Long userId) {
-        try {
-            return itemService.getItems(userId);
-        } catch (Exception e) {
-            ErrorHandler.handleInternalServerError(e);
-            return null;
-        }
+        return itemService.getItems(userId);
     }
 
     @GetMapping("/{itemId}")
     public Item getItem(@PathVariable Long itemId) {
-        try {
-            return itemService.getItem(itemId);
-        } catch (Exception e) {
-            ErrorHandler.handleInternalServerError(e);
-            return null;
-        }
+        return itemService.getItem(itemId);
     }
 
     @PostMapping
     public Item addItem(@RequestHeader(USERID_HEADER) Long userId, @RequestBody Item item) {
-        try {
-            return itemService.addItem(userId, item);
-        } catch (Exception e) {
-            ErrorHandler.handleInternalServerError(e);
-            return null;
-        }
+        return itemService.addItem(userId, item);
     }
 
     @PatchMapping("/{itemId}")
     public Item updateItem(@RequestHeader(USERID_HEADER) Long userId,
                            @PathVariable Long itemId,
                            @RequestBody Item item) {
-        try {
-            return itemService.updateItem(userId, itemId, item);
-        } catch (Exception e) {
-            ErrorHandler.handleInternalServerError(e);
-            return null;
-        }
+        return itemService.updateItem(userId, itemId, item);
     }
 
     @DeleteMapping("/{itemId}")
     public Boolean deleteItem(@PathVariable Long itemId) {
-        try {
-            return itemService.deleteItem(itemId);
-        } catch (Exception e) {
-            ErrorHandler.handleInternalServerError(e);
-            return null;
-        }
+        return itemService.deleteItem(itemId);
     }
 
     @GetMapping("/search")
     public List<Item> searchItems(@RequestParam String text) {
-        try {
-            return itemService.searchItems(text);
-        } catch (Exception e) {
-            ErrorHandler.handleInternalServerError(e);
-            return null;
-        }
+        return itemService.searchItems(text);
     }
+
 }

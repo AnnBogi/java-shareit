@@ -66,7 +66,7 @@ public class DbItemStorageImpl implements ItemStorage {
     public Item updateItem(Long userId, Long itemId, Item item) {
         Item updatedItem = getItem(itemId);
 
-        if (!updatedItem.getOwner().getId().equals(userId)) {
+        if (!Objects.equals(updatedItem.getOwner().getId(), userId)) {
             throw new ObjectNotFoundException("User don't have access to this item.");
         }
 
@@ -113,15 +113,12 @@ public class DbItemStorageImpl implements ItemStorage {
     }
 
     private Item mapRow(ResultSet rs, int rowNum) throws SQLException {
-        long ownerId = rs.getLong("owner");
-        User owner = getUser(ownerId);
-
         return Item.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
                 .available(rs.getBoolean("available"))
-                .owner(owner)
+                .owner(getUser(rs.getLong("owner")))
                 .build();
     }
 
