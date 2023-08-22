@@ -1,36 +1,65 @@
 package ru.practicum.shareit.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+        import org.springframework.http.HttpStatus;
+        import org.springframework.http.ResponseEntity;
+        import org.springframework.web.bind.annotation.ControllerAdvice;
+        import org.springframework.web.bind.annotation.ExceptionHandler;
+        import org.springframework.web.bind.annotation.ResponseBody;
+        import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.Map;
+        import java.util.HashMap;
+        import java.util.Map;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler
+    @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleNotFoundException(final ObjectNotFoundException e) {
-        return Map.of("404 OBJECT NOT FOUND", e.getMessage());
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleNotFoundException(ObjectNotFoundException e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "OBJECT NOT FOUND");
+        errorResponse.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(UserAlreadyExistException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleUserAlreadyExists(final UserAlreadyExist e) {
-        return Map.of("409 USER ALREADY EXISTS", e.getMessage());
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleUserAlreadyExists(UserAlreadyExistException e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "USER ALREADY EXISTS");
+        errorResponse.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(ItemAccessDeniedException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> handleItemAccessDeniedException(final ItemAccessDeniedException e) {
-        return Map.of("409 USER HAVEN'T ACCESS", e.getMessage());
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleItemAccessDeniedException(ItemAccessDeniedException e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "USER HAVEN'T ACCESS");
+        errorResponse.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(InvalidEntityException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleBadRequestException(final InvalidEntityException e) {
-        return Map.of("400 BAD REQUEST", e.getMessage());
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleBadRequestException(InvalidEntityException e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "BAD REQUEST");
+        errorResponse.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> handleInternalServerError(Exception e) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", "INTERNAL SERVER ERROR");
+        errorResponse.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }
