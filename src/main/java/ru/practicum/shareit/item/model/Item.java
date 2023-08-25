@@ -1,18 +1,34 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.apache.catalina.connector.Request;
+import lombok.NoArgsConstructor;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-@Data
-@Builder
-public class Item {
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Item {
     private Long id;
+    @NotBlank
     private String name;
+    @NotBlank
     private String description;
+    @NotNull
     private Boolean available;
     private User owner;
-    private Request request;
+    private ItemRequest request;
+
+    public Item(Item newItem) {
+        this.setId(newItem.getId());
+        this.setName(newItem.getName());
+        this.setDescription(newItem.getDescription());
+        this.setAvailable(newItem.getAvailable());
+        this.setOwner(newItem.getOwner());
+        this.setRequest(newItem.getRequest());
+    }
 }
