@@ -39,3 +39,5 @@ build/
 !/.idea/
 
 !/shareit.iml
+!/checkstyle.xml
+echo .DS_Store >> .gitignore
