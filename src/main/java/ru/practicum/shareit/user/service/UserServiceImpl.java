@@ -1,48 +1,69 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
+import org.springframework.util.StringUtils;
+import ru.practicum.shareit.exception.DataExistException;
+import ru.practicum.shareit.exception.ObjectNotFoundException;
+import ru.practicum.shareit.logger.Logger;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserMapper userMapper;
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Override
-    public UserDto get(Long id) {
-        return userMapper.toUserDto(userStorage.get(id));
+    public User addUser(User user) {
+        try {
+            User userSaved = userRepository.save(user);
+            Logger.logSave(HttpMethod.POST, "/users", userSaved.toString());
+            return userSaved;
+        } catch (RuntimeException e) {
+            throw new DataExistException(String.format("Пользователь с email %s уже есть в базе", user.getEmail()));
+        }
+
     }
 
     @Override
-    public Collection<UserDto> getAll() {
-        return userStorage.getAll()
-                .stream()
-                .map(userMapper::toUserDto)
-                .collect(Collectors.toList());
+    public User updateUser(long id, User user) {
+        try {
+            User targetUser = getUserById(id);
+            if (StringUtils.hasLength(user.getEmail())) {
+                targetUser.setEmail(user.getEmail());
+            }
+            if (StringUtils.hasLength(user.getName())) {
+                targetUser.setName(user.getName());
+            }
+            User userSaved = userRepository.save(targetUser);
+            Logger.logSave(HttpMethod.PATCH, "/users/" + id, userSaved.toString());
+            return userSaved;
+        } catch (RuntimeException e) {
+            throw new DataExistException(String.format("Пользователь с email %s уже есть в базе", user.getEmail()));
+        }
     }
 
     @Override
-    public UserDto add(UserDto userDto) {
-        User user = userStorage.add(userMapper.toUser(userDto));
-        return userMapper.toUserDto(user);
+    public User getUserById(long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new ObjectNotFoundException(String.format("Пользователь с id %s не найден", userId)));
+        Logger.logSave(HttpMethod.GET, "/users/" + userId, user.toString());
+        return user;
     }
 
     @Override
-    public UserDto patch(UserDto userDto, Long id) {
-        userDto.setId(id);
-        return userMapper.toUserDto(userStorage.patch(userMapper.toUser(userDto)));
+    public List<User> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        Logger.logSave(HttpMethod.GET, "/users", users.toString());
+        return users;
     }
 
     @Override
-    public Boolean delete(Long id) {
-        return userStorage.delete(id);
+    public void removeUser(long id) {
+        userRepository.deleteById(id);
     }
 }
