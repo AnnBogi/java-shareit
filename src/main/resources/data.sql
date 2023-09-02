@@ -1,4 +1,3 @@
-delete from comments;
 delete from bookings;
 delete from ITEMS;
 delete from USERS;
