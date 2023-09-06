@@ -53,7 +53,7 @@ public class BookingController {
         return ResponseEntity.ok().body(bookingService.approveOrRejectBooking(userId, bookingId, approved, AccessLevel.OWNER));
     }
 
-    @GetMapping("/{bookingId}")   // Получение данных о конкретном бронировании (включая его статус)
+    @GetMapping("/{bookingId}")
     public ResponseEntity<BookingDto> getBookingById(@PathVariable long bookingId, @RequestHeader(userIdHeader) long userId) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .scheme(protocol)
