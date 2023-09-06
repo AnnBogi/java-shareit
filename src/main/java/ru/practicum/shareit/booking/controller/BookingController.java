@@ -26,7 +26,7 @@ public class BookingController {
     private final String protocol = "http";
     private final String userIdHeader = "X-Sharer-User-Id";
 
-    @PostMapping    // Добавление нового запроса на бронирование.
+    @PostMapping
     public ResponseEntity<BookingDto> addBooking(@RequestHeader(userIdHeader) long userId,
                                                  @Valid @RequestBody BookingInputDto bookingInputDto) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
