@@ -39,7 +39,7 @@ public class BookingController {
         return ResponseEntity.status(201).body(bookingService.addBooking(userId, bookingInputDto));
     }
 
-    @PatchMapping("/{bookingId}")   // Подтверждение или отклонение запроса на бронирование.
+    @PatchMapping("/{bookingId}")
     public ResponseEntity<BookingDto> approveOrRejectBooking(@PathVariable long bookingId, @RequestParam boolean approved,
                                                              @RequestHeader(userIdHeader) long userId) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
