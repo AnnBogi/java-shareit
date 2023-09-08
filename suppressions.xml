@@ -5,5 +5,3 @@
 <suppressions>
 	<suppress checks=".*" files="target[\\/]generated-sources[\\/]"/>
 </suppressions>
-
-
