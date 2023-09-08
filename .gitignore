@@ -31,4 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+!/target/classes/
+!/target/generated-sources/
+!/target/generated-test-sources/
+!/target/test-classes/
+!/target/
+!/.idea/
 
+!/shareit.iml
+!/checkstyle.xml
+echo .DS_Store >> .gitignore
