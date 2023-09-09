@@ -1,4 +1,5 @@
 HELP.md
+target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -13,16 +14,10 @@ HELP.md
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea/
+.idea
 *.iws
 *.iml
 *.ipr
-*.db
-*.log
-*.class
-*.jar
-out/
-target/
 
 ### NetBeans ###
 /nbproject/private/
@@ -46,5 +41,3 @@ build/
 !/shareit.iml
 !/checkstyle.xml
 echo .DS_Store >> .gitignore
-mvn
-!.DS_Store
