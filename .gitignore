@@ -31,24 +31,3 @@ build/
 
 ### VS Code ###
 .vscode/
-!/target/classes/
-!/target/generated-sources/
-!/target/generated-test-sources/
-!/target/test-classes/
-!/target/
-!/.idea/
-echo .DS_Store >> .gitignore
-plaintext
-*.class
-*.jar
-mvn
-.DS_Store
-.idea/
-*.iws
-*.iml
-*.ipr
-*.db
-*.log
-out/
-
-
