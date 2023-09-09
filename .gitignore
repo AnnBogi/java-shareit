@@ -44,7 +44,11 @@ plaintext
 mvn
 .DS_Store
 .idea/
+*.iws
+*.iml
+*.ipr
 *.db
 *.log
 out/
+target/
 
