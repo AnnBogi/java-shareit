@@ -66,7 +66,7 @@ public class BookingServiceImpl implements BookingService {
         User owner = userService.getUserById(ownerId);
         Booking booking = getBookingById(bookingId, owner.getId(), accessLevel);
         if (booking.getStatus().equals(Status.APPROVED)) {
-            throw new InvalidDataException(String.format("У бронирования с id %d уже стоит статус %s",
+            throw new InvalidDataException(String.format("У бронирования с id %s уже стоит статус %s",
                     bookingId, Status.APPROVED.name()));
         }
         if (approved) {
@@ -91,9 +91,9 @@ public class BookingServiceImpl implements BookingService {
     public Booking getBookingById(long bookingId, long userId, AccessLevel accessLevel) {
         User user = userService.getUserById(userId);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
-                () -> new ObjectNotFoundException(String.format("Бронирование с id %d не найдено", bookingId)));
+                () -> new ObjectNotFoundException(String.format("Бронирование с id %s не найдено", bookingId)));
         if (isUnableToAccess(user.getId(), booking, accessLevel)) {
-            throw new AccessException(String.format("У пользователя с id %d нет прав на просмотр бронирования с id %d,",
+            throw new AccessException(String.format("У пользователя с id %d нет прав на просмотр бронирования с id %s,",
                     userId, bookingId));
         }
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
@@ -111,7 +111,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingDto getBooking(long bookingId, long userId, AccessLevel accessLevel) {
         User user = userService.getUserById(userId);
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
-                () -> new ObjectNotFoundException(String.format("Бронирование с id %d не найдено", bookingId)));
+                () -> new ObjectNotFoundException(String.format("Бронирование с id %s не найдено", bookingId)));
         if (isUnableToAccess(user.getId(), booking, accessLevel)) {
             throw new AccessException(String.format("У пользователя с id %d нет прав на просмотр бронирования с id %d,",
                     userId, bookingId));
@@ -238,7 +238,7 @@ public class BookingServiceImpl implements BookingService {
         if (bookerId == item.getUserId()) {
             throw new AccessException("Владелец вещи не может бронировать свои вещи.");
         } else if (!item.getAvailable()) {
-            throw new ObjectNotAvailableException(String.format("Вещь с id %d не доступна для бронирования.",
+            throw new ObjectNotAvailableException(String.format("Вещь с id %s не доступна для бронирования.",
                     item.getId()));
         } else if (isNotValidDate(booking.getStart(), booking.getEnd())) {
             throw new InvalidDataException("Даты бронирования выбраны некорректно.");

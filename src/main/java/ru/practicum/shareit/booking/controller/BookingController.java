@@ -26,7 +26,7 @@ public class BookingController {
     private final String protocol = "http";
     private final String userIdHeader = "X-Sharer-User-Id";
 
-    @PostMapping
+    @PostMapping    // Добавление нового запроса на бронирование.
     public ResponseEntity<BookingDto> addBooking(@RequestHeader(userIdHeader) long userId,
                                                  @Valid @RequestBody BookingInputDto bookingInputDto) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
@@ -39,7 +39,7 @@ public class BookingController {
         return ResponseEntity.status(201).body(bookingService.addBooking(userId, bookingInputDto));
     }
 
-    @PatchMapping("/{bookingId}")
+    @PatchMapping("/{bookingId}")   // Подтверждение или отклонение запроса на бронирование.
     public ResponseEntity<BookingDto> approveOrRejectBooking(@PathVariable long bookingId, @RequestParam boolean approved,
                                                              @RequestHeader(userIdHeader) long userId) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
@@ -53,7 +53,7 @@ public class BookingController {
         return ResponseEntity.ok().body(bookingService.approveOrRejectBooking(userId, bookingId, approved, AccessLevel.OWNER));
     }
 
-    @GetMapping("/{bookingId}")
+    @GetMapping("/{bookingId}")   // Получение данных о конкретном бронировании (включая его статус)
     public ResponseEntity<BookingDto> getBookingById(@PathVariable long bookingId, @RequestHeader(userIdHeader) long userId) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .scheme(protocol)

@@ -134,13 +134,13 @@ public class ItemServiceImpl implements ItemService {
         List<ItemDto> itemsDto = items.stream()
                 .map(itemMapper::convertToDto)
                 .collect(Collectors.toList());
-        Logger.logInfo(HttpMethod.GET, "/items", items.toString());
+        Logger.logInfo(HttpMethod.GET, "/items",  items.toString());
         List<Booking> bookings = bookingRepository.findAllByOwnerId(userId,
                 Sort.by(Sort.Direction.DESC, "start"));
         List<BookingDtoShort> bookingDtoShorts = bookings.stream()
                 .map(bookingMapper::convertToDtoShort)
                 .collect(Collectors.toList());
-        Logger.logInfo(HttpMethod.GET, "/items", bookings.toString());
+        Logger.logInfo(HttpMethod.GET, "/items",  bookings.toString());
         List<Comment> comments = commentRepository.findAllByItemIdIn(
                 items.stream()
                         .map(Item::getId)
