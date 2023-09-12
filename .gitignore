@@ -37,6 +37,8 @@ build/
 !/target/test-classes/
 !/target/
 !/.idea/
+!/shareit.iml
+!/checkstyle.xml
 echo .DS_Store >> .gitignore
 plaintext
 *.class
