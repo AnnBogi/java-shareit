@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -37,17 +36,10 @@ public class BookingServiceImpl implements BookingService {
     private final String port = "8080";
     private final String protocol = "http";
 
-    @Transactional
     @Override
     public BookingDto addBooking(long bookerId, BookingInputDto bookingInputDto) {
         Booking booking = bookingMapper.convertFromDto(bookingInputDto);
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme(protocol)
-                .host(host)
-                .port(port)
-                .path("/bookings")
-                .build();
-        Logger.logInfo(HttpMethod.POST, uriComponents.toUriString(), booking.toString());
+        Logger.logInfo(HttpMethod.POST, "/bookings", booking.toString());
         User booker = userService.getUserById(bookerId);
         Item item = itemRepository.findById(booking.getItem().getId()).orElseThrow(() ->
                 new ObjectNotFoundException(String.format("Вещь с id %s не найдена", booking.getItem().getId())));
@@ -56,11 +48,16 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(Status.WAITING);
         booking.setItem(item);
         Booking bookingSaved = bookingRepository.save(booking);
+        UriComponents uriComponents = UriComponentsBuilder.newInstance()
+                .scheme(protocol)
+                .host(host)
+                .port(port)
+                .path("/bookings")
+                .build();
         Logger.logSave(HttpMethod.POST, uriComponents.toUriString(), bookingSaved.toString());
         return bookingMapper.convertToDto(bookingSaved);
     }
 
-    @Transactional
     @Override
     public BookingDto approveOrRejectBooking(long ownerId, long bookingId, boolean approved, AccessLevel accessLevel) {
         User owner = userService.getUserById(ownerId);
@@ -86,7 +83,6 @@ public class BookingServiceImpl implements BookingService {
         return bookingMapper.convertToDto(bookingSaved);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public Booking getBookingById(long bookingId, long userId, AccessLevel accessLevel) {
         User user = userService.getUserById(userId);
@@ -106,7 +102,6 @@ public class BookingServiceImpl implements BookingService {
         return booking;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public BookingDto getBooking(long bookingId, long userId, AccessLevel accessLevel) {
         User user = userService.getUserById(userId);
@@ -126,7 +121,6 @@ public class BookingServiceImpl implements BookingService {
         return bookingMapper.convertToDto(booking);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getBookingsOfCurrentUser(State state, long bookerId) {
         User booker = userService.getUserById(bookerId);
@@ -170,7 +164,6 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<BookingDto> getBookingsOfOwner(State state, long ownerId) {
         User owner = userService.getUserById(ownerId);

@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.shareit.booking.dto.BookingDtoShort;
@@ -46,7 +45,6 @@ public class ItemServiceImpl implements ItemService {
     private final String port = "8080";
     private final String protocol = "http";
 
-    @Transactional
     @Override
     public ItemDto addItem(long userId, ItemDto itemDto) {
         Item item = itemMapper.convertFromDto(itemDto);
@@ -63,7 +61,6 @@ public class ItemServiceImpl implements ItemService {
         return itemMapper.convertToDto(itemSaved);
     }
 
-    @Transactional
     @Override
     public ItemDto updateItem(long userId, long itemId, ItemDto itemDto) {
         Item item = itemMapper.convertFromDto(itemDto);
@@ -95,7 +92,6 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    @Transactional(readOnly = true)
     @Override
     public ItemDto getItemById(long itemId, long userId) {
         userService.getUserById(userId);
@@ -126,7 +122,6 @@ public class ItemServiceImpl implements ItemService {
         return itemDto;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<ItemDto> getAllItems(long userId) {
         User user = userService.getUserById(userId);
@@ -160,7 +155,6 @@ public class ItemServiceImpl implements ItemService {
         return itemsDto;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<ItemDto> searchItems(String text) {
         List<Item> items;
@@ -183,7 +177,6 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
     @Override
     public void removeItem(long userId, long itemId) {
         userService.getUserById(userId);
@@ -199,7 +192,6 @@ public class ItemServiceImpl implements ItemService {
         Logger.logSave(HttpMethod.DELETE, uriComponents.toUriString(), "Вещь удалена");
     }
 
-    @Transactional
     @Override
     public CommentDto addComment(long userId, long itemId, CommentDto commentDto) {
         Comment comment = commentMapper.convertFromDto(commentDto);
