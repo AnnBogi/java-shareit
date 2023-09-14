@@ -1,51 +1,17 @@
 package ru.practicum.shareit.user.service;
 
-import ru.practicum.shareit.exception.DataExistException;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
 public interface UserService {
+    List<UserDto> getUsers();
 
-    /**
-     * Реализует добавление Пользователя в хранилище
-     * @param userDto объект Пользователь
-     * @return UserDto
-     */
-    UserDto addUser(UserDto userDto) throws DataExistException;
+    UserDto getUser(Long userId);
 
-    /**
-     * Реализует обновление полей Пользователя
-     * @param userId идентификатор Пользователя
-     * @param userDto объект Пользователь с изменениями
-     * @return UserDto
-     */
-    UserDto updateUser(long userId, UserDto userDto) throws DataExistException;
+    UserDto addUser(UserDto user);
 
-    /**
-     * Возвращает Пользователя по идентификатору
-     * @param userId идентификатор пользователя
-     * @return User
-     */
-    User getUserById(long userId);
+    UserDto updateUser(Long userId, UserDto user);
 
-    /**
-     * Возвращает Пользователя по идентификатору
-     * @param userId идентификатор пользователя
-     * @return UserDto
-     */
-    UserDto getUser(long userId);
-
-    /**
-     * Возвращает коллекцию Пользователей
-     * @return коллекцию UserDto
-     */
-    List<UserDto> getAllUsers() throws DataExistException;
-
-    /**
-     * Реализует удаление Пользователя из хранилища
-     * @param userId идентификатор Пользователя
-     */
-    void removeUser(long userId);
+    void deleteUser(Long userId);
 }

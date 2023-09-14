@@ -1,121 +1,84 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-import ru.practicum.shareit.exception.DataExistException;
-import ru.practicum.shareit.exception.ObjectNotFoundException;
-import ru.practicum.shareit.logger.Logger;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.repository.UserJpaRepository;
+import ru.practicum.shareit.exception.EntityAlreadyExist;
+import ru.practicum.shareit.exception.ObjectNotFoundException;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserMapper userMapper;
-    private final UserRepository userRepository;
-    private final String host = "localhost";
-    private final String port = "8080";
-    private final String protocol = "http";
 
-    @Override
-    public UserDto addUser(UserDto userDto) {
-        User user = userMapper.convertFromDto(userDto);
-        try {
-            User userSaved = userRepository.save(user);
-            UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                    .scheme(protocol)
-                    .host(host)
-                    .port(port)
-                    .path("/users")
-                    .build();
-            Logger.logSave(HttpMethod.POST, uriComponents.toUriString(), userSaved.toString());
-            return userMapper.convertToDto(userSaved);
-        } catch (DataExistException e) {
-            throw new DataExistException(String.format("Пользователь с email %s уже есть в базе", user.getEmail()));
-        }
+    private final UserJpaRepository repository;
 
+    @Autowired
+    public UserServiceImpl(UserJpaRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public  UserDto updateUser(long id, UserDto userDto) {
-        User user = userMapper.convertFromDto(userDto);
-        try {
-            User targetUser = getUserById(id);
-            if (StringUtils.hasLength(user.getEmail())) {
-                targetUser.setEmail(user.getEmail());
-            }
-            if (StringUtils.hasLength(user.getName())) {
-                targetUser.setName(user.getName());
-            }
-            User userSaved = userRepository.save(targetUser);
-            UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                    .scheme(protocol)
-                    .host(host)
-                    .port(port)
-                    .path("/users/{id}")
-                    .build();
-            Logger.logSave(HttpMethod.PATCH, uriComponents.toUriString(), userSaved.toString());
-            return userMapper.convertToDto(userSaved);
-        } catch (DataExistException e) {
-            throw new DataExistException(String.format("Пользователь с email %s уже есть в базе", user.getEmail()));
-        }
-    }
-
-    @Override
-    public User getUserById(long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new ObjectNotFoundException(String.format("Пользователь с id %s не найден", userId)));
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme(protocol)
-                .host(host)
-                .port(port)
-                .path("/users/{userId}")
-                .build();
-        Logger.logSave(HttpMethod.GET, uriComponents.toUriString(), user.toString());
-        return user;
-    }
-
-    @Override
-    public UserDto getUser(long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new ObjectNotFoundException(String.format("Пользователь с id %s не найден", userId)));
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme(protocol)
-                .host(host)
-                .port(port)
-                .path("/users/{userId}")
-                .build();
-        Logger.logSave(HttpMethod.GET, uriComponents.toUriString(), user.toString());
-        return userMapper.convertToDto(user);
-    }
-
-    @Override
-    public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        UriComponents uriComponents = UriComponentsBuilder.newInstance()
-                .scheme(protocol)
-                .host(host)
-                .port(port)
-                .path("/users")
-                .build();
-        Logger.logSave(HttpMethod.GET, uriComponents.toUriString(), users.toString());
-        return users
+    public List<UserDto> getUsers() {
+        return repository.findAll()
                 .stream()
-                .map(userMapper::convertToDto)
+                .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void removeUser(long id) {
-        userRepository.deleteById(id);
+    public UserDto getUser(Long userId) {
+        return repository.findById(userId).map(UserMapper::toUserDto)
+                .orElseThrow(() ->
+                        new ObjectNotFoundException("User not found."));
+    }
+
+    @Transactional
+    @Override
+    public UserDto addUser(UserDto user) {
+        if (user.getEmail() == null) {
+            throw new IllegalArgumentException("Invalid user body.");
+        }
+        if (repository.existsUserByEmail(user.getEmail())) {
+            repository.save(UserMapper.toUser(user));
+            throw new EntityAlreadyExist("User already exist.");
+        }
+        return UserMapper.toUserDto(repository.save(UserMapper.toUser(user)));
+    }
+
+    @Override
+    public UserDto updateUser(Long userId, UserDto user) {
+        User updateUser = repository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("User not found."));
+        return UserMapper.toUserDto(repository.save(updateNameAndEmailUser(updateUser, user)));
+    }
+
+    @Transactional
+    @Override
+    public void deleteUser(Long userId) {
+        if (!repository.existsById(userId)) {
+            throw new ObjectNotFoundException("User not found.");
+        }
+        repository.deleteById(userId);
+    }
+
+    private User updateNameAndEmailUser(User updatedUser, UserDto user) {
+
+        if (user.getName() != null) {
+            updatedUser.setName(user.getName());
+        }
+        if (user.getEmail() != null && !updatedUser.getEmail().equals(user.getEmail())) {
+            if (!repository.existsUserByEmail(user.getEmail())) {
+                updatedUser.setEmail(user.getEmail());
+            } else {
+                throw new EntityAlreadyExist("Такой email уже существует.");
+            }
+        }
+        return updatedUser;
     }
 }

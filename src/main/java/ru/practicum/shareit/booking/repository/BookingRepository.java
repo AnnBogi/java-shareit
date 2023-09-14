@@ -1,43 +1,38 @@
 package ru.practicum.shareit.booking.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.Status;
+
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.enums.BookingStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
+@Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    List<Booking> findAllByBookerId(long bookerId, Sort sort);
+    List<Booking> findAllByBookerIdOrderByStartDesc(Long userId);
 
-    List<Booking> findAllByBookerIdAndStatus(long bookerId, Status status, Sort sort);
+    List<Booking> findAllByBookerIdAndEndIsBefore(Long userId, LocalDateTime date, Sort sort);
 
-    List<Booking> findAllByBookerIdAndStartAfter(long bookerId, LocalDateTime localDateTime, Sort sort);
+    List<Booking> findAllByBookerIdAndStartIsAfter(Long userId, LocalDateTime date, Sort sort);
 
-    List<Booking> findAllByBookerIdAndEndBefore(long bookerId, LocalDateTime localDateTime, Sort sort);
+    List<Booking> findAllByBookerIdAndStartIsBeforeAndEndIsAfter(Long userId, LocalDateTime dateTime, LocalDateTime date, Sort sort);
 
-    @Query(value = "select b from Booking b where b.booker.id = ?1 and b.start < ?2 and b.end > ?2")
-    List<Booking> findAllByBookerIdAndStartBeforeAndEndAfter(long bookerId, LocalDateTime localDateTime, Sort sort);
+    List<Booking> findAllByBookerIdAndStatus(Long userId, BookingStatus bookingStatus);
 
-    @Query(value = "select b from Booking b where b.item.userId = ?1")
-    List<Booking> findAllByOwnerId(long ownerId, Sort sort);
+    List<Booking> findAllByItem_Owner_IdOrderByStartDesc(Long userId);
 
-    @Query(value = "select b from Booking b where b.item.userId = ?1 and b.status = ?2")
-    List<Booking> findAllByOwnerIdAndStatus(long ownerId, Status status, Sort sort);
+    List<Booking> findAllByItem_Owner_IdAndEndIsBefore(Long userId, LocalDateTime date, Sort sort);
 
-    @Query(value = "select b from Booking b where b.item.userId = ?1 and b.start > ?2")
-    List<Booking> findAllByOwnerIdAndStartAfter(long ownerId, LocalDateTime localDateTime, Sort sort);
+    List<Booking> findAllByItem_Owner_IdAndStartIsAfter(Long userId, LocalDateTime date, Sort sort);
 
-    @Query(value = "select b from Booking b where b.item.userId = ?1 and b.end < ?2")
-    List<Booking> findAllByOwnerIdAndEndBefore(long ownerId, LocalDateTime localDateTime, Sort sort);
+    List<Booking> findAllByItem_Owner_IdAndStartIsBeforeAndEndIsAfter(Long userId, LocalDateTime dateTime, LocalDateTime date, Sort sort);
 
-    @Query(value = "select b from Booking b where b.item.userId = ?1 and b.start < ?2 and b.end > ?2")
-    List<Booking> findAllByOwnerIdAndStartBeforeAndEndAfter(long bookerId, LocalDateTime localDateTime, Sort sort);
+    List<Booking> findAllByItem_Owner_IdAndStatus(Long userId, BookingStatus bookingStatus);
 
-    List<Booking> findByItemId(long itemId, Sort sort);
+    List<Booking> findAllByItemIdOrderByStartAsc(Long itemId);
 
-    Optional<List<Booking>> findAllByItemIdAndBookerIdAndStatus(long itemId, long bookerId, Status status, Sort sort);
+    List<Booking> findByBooker_IdAndItem_IdOrderByStartAsc(Long userId, Long itemId);
 }

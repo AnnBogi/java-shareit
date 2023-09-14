@@ -1,51 +1,39 @@
 package ru.practicum.shareit.booking.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import ru.practicum.shareit.enums.BookingStatus;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "bookings")
+@Table(name = "booking")
 @Getter
 @Setter
-@ToString
-public class Booking {
+@ToString public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
+    @Column(name = "start_date")
+    private LocalDateTime start;
+
+    @Column(name = "end_date")
+    private LocalDateTime end;
+
+    @ManyToOne
+    @JoinColumn(name = "item_id", referencedColumnName = "id")
     private Item item;
 
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booker_id")
+    @ManyToOne
+    @JoinColumn(name = "booker_id", referencedColumnName = "id")
     private User booker;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private Status status;
-
-    @Column(name = "start_booking")
-    private LocalDateTime start;
-
-    @Column(name = "end_booking")
-    private LocalDateTime end;
+    private BookingStatus status;
 }

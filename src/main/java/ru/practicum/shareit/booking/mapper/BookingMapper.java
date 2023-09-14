@@ -1,22 +1,57 @@
 package ru.practicum.shareit.booking.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingDtoShort;
-import ru.practicum.shareit.booking.dto.BookingInputDto;
+import ru.practicum.shareit.booking.dto.BookingInfoDto;
+import ru.practicum.shareit.booking.dto.BookingItemDto;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.item.dto.ItemInfoDto;
+import ru.practicum.shareit.user.dto.UserInfoDto;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, ItemMapper.class})
-public interface BookingMapper {
+public class BookingMapper {
+    public static Booking toBooking(BookingDto booking) {
+        return Booking.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .status(booking.getStatus())
+                .build();
+    }
 
-    BookingDto convertToDto(Booking booking);
+    public static BookingInfoDto toBookingInfoDto(Booking booking) {
+        return BookingInfoDto.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .status(booking.getStatus())
+                .item(ItemInfoDto.builder()
+                        .id(booking.getItem().getId())
+                        .name(booking.getItem().getName())
+                        .build())
+                .booker(UserInfoDto.builder()
+                        .id(booking.getBooker().getId())
+                        .name(booking.getBooker().getName())
+                        .build())
+                .build();
+    }
 
-    @Mapping(target = "bookerId", source = "booker.id")
-    BookingDtoShort convertToDtoShort(Booking booking);
+    public static BookingItemDto toBookingItem(Booking booking) {
+        return BookingItemDto.builder()
+                .id(booking.getId())
+                .bookerId(booking.getBooker().getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .build();
+    }
 
-    @Mapping(target = "item.id", source = "itemId")
-    Booking convertFromDto(BookingInputDto bookingInputDto);
+    public static BookingDto toBookingDto(Booking booking) {
+        return BookingDto.builder()
+                .id(booking.getId())
+                .start(booking.getStart())
+                .end(booking.getEnd())
+                .status(booking.getStatus())
+                .itemId(booking.getItem().getId())
+                .bookerId(booking.getBooker().getId())
+                .build();
+    }
+
 }
