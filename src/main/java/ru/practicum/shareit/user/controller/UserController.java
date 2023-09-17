@@ -1,57 +1,46 @@
 package ru.practicum.shareit.user.controller;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.exception.DataExistException;
-import ru.practicum.shareit.logger.Logger;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.service.UserServiceImpl;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping(path = "/users")
-@AllArgsConstructor
 public class UserController {
-    private final UserService userService;
-    private final UserMapper userMapper;
+    private final UserServiceImpl userServiceImpl;
 
-    @PostMapping
-    public UserDto addUser(@Valid @RequestBody UserDto userDto) throws DataExistException {
-        Logger.logRequest(HttpMethod.POST, "/users", userDto.toString());
-        User user = userMapper.convertFromDto(userDto);
-        return userMapper.convertToDto(userService.addUser(user));
-    }
-
-    @GetMapping("{userId}")
-    public UserDto getUserById(@PathVariable long userId) {
-        Logger.logRequest(HttpMethod.GET, "/users/" + userId, "пусто");
-        return userMapper.convertToDto(userService.getUserById(userId));
+    @Autowired
+    public UserController(UserServiceImpl userServiceImpl) {
+        this.userServiceImpl = userServiceImpl;
     }
 
     @GetMapping
-    public List<UserDto> getAllUsers() throws DataExistException {
-        Logger.logRequest(HttpMethod.GET, "/users", "пусто");
-        return userService.getAllUsers().stream()
-                .map(userMapper::convertToDto)
-                .collect(Collectors.toList());
+    public List<UserDto> getUsers() {
+        return userServiceImpl.getUsers();
     }
 
-    @PatchMapping("{userId}")
-    public UserDto updateUser(@PathVariable long userId, @RequestBody UserDto userDto) throws DataExistException {
-        Logger.logRequest(HttpMethod.PATCH, "/users/" + userId, userDto.toString());
-        User user = userMapper.convertFromDto(userDto);
-        return userMapper.convertToDto(userService.updateUser(userId, user));
+    @GetMapping("/{userId}")
+    public UserDto getUser(@PathVariable Long userId) {
+        return userServiceImpl.getUser(userId);
     }
 
-    @DeleteMapping("{userId}")
-    public void removeUser(@PathVariable long userId) {
-        Logger.logRequest(HttpMethod.DELETE, "/users/" + userId, "пусто");
-        userService.removeUser(userId);
+    @PostMapping
+    public UserDto addUser(@Valid @RequestBody UserDto user) {
+        return userServiceImpl.addUser(user);
+    }
+
+    @PatchMapping("/{userId}")
+    public UserDto updateUser(@PathVariable Long userId, @RequestBody UserDto user) {
+        return userServiceImpl.updateUser(userId, user);
+    }
+
+    @DeleteMapping("/{userId}")
+    public void deleteUser(@PathVariable Long userId) {
+        userServiceImpl.deleteUser(userId);
     }
 }

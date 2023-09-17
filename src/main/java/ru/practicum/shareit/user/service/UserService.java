@@ -1,24 +1,17 @@
 package ru.practicum.shareit.user.service;
 
-import ru.practicum.shareit.exception.DataExistException;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
 
 public interface UserService {
+    List<UserDto> getUsers();
 
+    UserDto getUser(Long userId);
 
-    User addUser(User user) throws DataExistException;
+    UserDto addUser(UserDto user);
 
+    UserDto updateUser(Long userId, UserDto user);
 
-    User updateUser(long userId, User user) throws DataExistException;
-
-
-    User getUserById(long userId);
-
-
-    List<User> getAllUsers() throws DataExistException;
-
-
-    void removeUser(long userId);
+    void deleteUser(Long userId);
 }

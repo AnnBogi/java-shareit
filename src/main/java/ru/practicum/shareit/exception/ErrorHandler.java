@@ -1,44 +1,41 @@
 package ru.practicum.shareit.exception;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Objects;
+import java.util.Map;
 
 @RestControllerAdvice
-@Slf4j
 public class ErrorHandler {
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({MethodArgumentNotValidException.class, ObjectNotAvailableException.class,
-            InvalidDataException.class, IllegalArgumentException.class})
-    public ErrorResponse handleNotValidArgumentException(Exception e) {
-        log.warn(e.getClass().getSimpleName(), e);
-        String message;
-        if (e instanceof MethodArgumentNotValidException) {
-            MethodArgumentNotValidException eValidation = (MethodArgumentNotValidException) e;
-            message = Objects.requireNonNull(eValidation.getBindingResult().getFieldError()).getDefaultMessage();
-        } else {
-            message = e.getMessage();
-        }
-        return new ErrorResponse(400, "Bad Request", message);
-    }
-
-    @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler({DataExistException.class})
-    public ErrorResponse handleDataExistExceptionException(DataExistException e) {
-        log.warn(e.getClass().getSimpleName(), e);
-        return new ErrorResponse(409, "Conflict", e.getMessage());
-    }
-
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({ObjectNotFoundException.class, AccessException.class})
-    public ErrorResponse handleDataExistExceptionException(RuntimeException e) {
-        log.warn(e.getClass().getSimpleName(), e);
-        return new ErrorResponse(404, "Not Found", e.getMessage());
+    public Map<String, String> handleNotFoundException(final ObjectNotFoundException e) {
+        return Map.of("404 OBJECT NOT FOUND", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleUserAlreadyExists(final EntityAlreadyExist e) {
+        return Map.of("409 ENTITY ALREADY EXISTS", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleItemAccessDeniedException(final EntityAccessDeniedException e) {
+        return Map.of("409 ENTITY HAVEN'T ACCESS", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleBadRequestException(final InvalidEntityException e) {
+        return Map.of("400 BAD REQUEST", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleUnknownStateException(final UnknownBookingState e) {
+        return new ErrorResponse(e.getMessage());
     }
 }

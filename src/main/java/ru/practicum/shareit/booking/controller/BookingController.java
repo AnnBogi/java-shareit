@@ -1,69 +1,53 @@
 package ru.practicum.shareit.booking.controller;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.model.AccessLevel;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingInputDto;
-import ru.practicum.shareit.booking.mapper.BookingMapper;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.StateEnumConverter;
+import ru.practicum.shareit.booking.dto.BookingInfoDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.logger.Logger;
 
-import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(path = "/bookings")
-@AllArgsConstructor
+@RequestMapping("/bookings")
 public class BookingController {
+
+    private static final String USERID_HEADER = "X-Sharer-User-Id";
     private final BookingService bookingService;
-    private final BookingMapper bookingMapper;
-    private final StateEnumConverter converter;
+
+    @Autowired
+    public BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
+    }
 
     @PostMapping
-    BookingDto addBooking(@RequestHeader("X-Sharer-User-Id") long userId,
-                          @Valid @RequestBody BookingInputDto bookingInputDto) {
-        Logger.logRequest(HttpMethod.POST, "/bookings", bookingInputDto.toString());
-        Booking booking = bookingService.addBooking(userId, bookingMapper.convertFromDto(bookingInputDto));
-        return bookingMapper.convertToDto(booking);
+    public BookingInfoDto addBooking(@RequestHeader(USERID_HEADER) Long userId, @RequestBody BookingDto booking) {
+        return bookingService.addBooking(userId, booking);
     }
 
     @PatchMapping("/{bookingId}")
-    BookingDto approveOrRejectBooking(@PathVariable long bookingId, @RequestParam boolean approved,
-                                      @RequestHeader("X-Sharer-User-Id") long userId) {
-        Logger.logRequest(HttpMethod.PATCH, "/bookings/" + bookingId + "?approved=" + approved, "no body");
-        Booking booking = bookingService.approveOrRejectBooking(userId, bookingId, approved, AccessLevel.OWNER);
-        return bookingMapper.convertToDto(booking);
+    public BookingInfoDto updateBookingStatus(@RequestHeader(USERID_HEADER) Long userId,
+                                              @PathVariable Long bookingId,
+                                              @RequestParam Boolean approved) {
+
+        return bookingService.updateBookingStatus(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
-    BookingDto getBookingById(@PathVariable long bookingId, @RequestHeader("X-Sharer-User-Id") long userId) {
-        Logger.logRequest(HttpMethod.GET, "/bookings/" + bookingId, "no body");
-        Booking booking = bookingService.getBookingById(bookingId, userId, AccessLevel.OWNER_AND_BOOKER);
-        return bookingMapper.convertToDto(booking);
+    public BookingInfoDto getCurrentBooking(@RequestHeader(USERID_HEADER) Long userId,
+                                            @PathVariable Long bookingId) {
+        return bookingService.getCurrentBooking(userId, bookingId);
     }
 
     @GetMapping
-    List<BookingDto> getBookingsOfCurrentUser(@RequestParam(defaultValue = "ALL") String state,
-                                              @RequestHeader("X-Sharer-User-Id") long userId) {
-        Logger.logRequest(HttpMethod.GET, "/bookings" + "?state=" + state, "no body");
-        List<Booking> bookings = bookingService.getBookingsOfCurrentUser(converter.convert(state), userId);
-        return bookings.stream()
-                .map(bookingMapper::convertToDto)
-                .collect(Collectors.toList());
+    public List<BookingInfoDto> getBooking(@RequestHeader(USERID_HEADER) Long userId,
+                                           @RequestParam(name = "state", defaultValue = "all") String stateParam) {
+        return bookingService.getBooking(userId, stateParam);
     }
 
     @GetMapping("/owner")
-    List<BookingDto> getBookingsOfOwner(@RequestParam(defaultValue = "ALL") String state,
-                                        @RequestHeader("X-Sharer-User-Id") long userId) {
-        Logger.logRequest(HttpMethod.GET, "/bookings" + "/owner?state=" + state, "no body");
-        List<Booking> bookings = bookingService.getBookingsOfOwner(converter.convert(state), userId);
-        return bookings.stream()
-                .map(bookingMapper::convertToDto)
-                .collect(Collectors.toList());
+    public List<BookingInfoDto> getOwnerBooking(@RequestHeader(USERID_HEADER) Long userId,
+                                                @RequestParam(name = "state", defaultValue = "all") String stateParam) {
+        return bookingService.getOwnerBooking(userId, stateParam);
     }
 }

@@ -1,25 +1,35 @@
 package ru.practicum.shareit.item.mapper;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.model.Item;
 
-@Component
 public class ItemMapper {
-    private final ModelMapper modelMapper;
 
-    ItemMapper() {
-        modelMapper = new ModelMapper();
-        modelMapper.createTypeMap(ItemDto.class, Item.class)
-                .addMappings(modelMapper -> modelMapper.skip(Item::setUserId));
+    public static ItemDto toDto(Item item) {
+        return ItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .build();
     }
 
-    public ItemDto convertToDto(Item item) {
-        return modelMapper.map(item, ItemDto.class);
+    public static ItemInfoDto toItemInfo(Item item) {
+        return ItemInfoDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .build();
     }
 
-    public Item convertFromDto(ItemDto itemDto) {
-        return modelMapper.map(itemDto, Item.class);
+    public static Item toItem(ItemDto itemDto) {
+        return Item.builder()
+                .id(itemDto.getId())
+                .name(itemDto.getName())
+                .description(itemDto.getDescription())
+                .available(itemDto.getAvailable())
+                .build();
     }
 }

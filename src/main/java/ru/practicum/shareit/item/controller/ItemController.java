@@ -1,75 +1,59 @@
 package ru.practicum.shareit.item.controller;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpMethod;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mapper.CommentMapper;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.logger.Logger;
 
-import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/items")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ItemController {
+
+    private static final String USERID_HEADER = "X-Sharer-User-Id";
     private final ItemService itemService;
-    private final ItemMapper itemMapper;
-    private final CommentMapper commentMapper;
-    private final String userIdHeader = "X-Sharer-User-Id";
+
+
+    @GetMapping
+    public List<ItemInfoDto> getItems(@RequestHeader(USERID_HEADER) Long userId) {
+        return itemService.getItems(userId);
+    }
+
+    @GetMapping("/{itemId}")
+    public ItemInfoDto getItem(@RequestHeader(USERID_HEADER) Long userId, @PathVariable Long itemId) {
+        return itemService.getItem(itemId, userId);
+    }
 
     @PostMapping
-    public ItemDto addItem(@RequestHeader(userIdHeader) long userId, @Valid @RequestBody ItemDto itemDto) {
-        Logger.logRequest(HttpMethod.POST, "/items", itemDto.toString());
-        Item item = itemMapper.convertFromDto(itemDto);
-        return itemMapper.convertToDto(itemService.addItem(userId, item));
+    public ItemDto addItem(@RequestHeader(USERID_HEADER) Long userId, @RequestBody ItemDto item) {
+        return itemService.addItem(userId, item);
     }
 
-    @GetMapping("{itemId}")
-    public ItemDto getItem(@PathVariable long itemId, @RequestHeader(userIdHeader) long userId) {
-        Logger.logRequest(HttpMethod.GET, "/items/" + itemId, "пусто");
-        return itemService.getItemById(itemId, userId);
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader(USERID_HEADER) Long userId,
+                                 @PathVariable Long itemId,
+                                 @RequestBody CommentDto commentDto) {
+        return itemService.addComment(userId, itemId, commentDto);
     }
 
-    @GetMapping     // Просмотр владельцем списка всех его вещей с указанием названия и описания для каждой
-    public List<ItemDto> getAllItems(@RequestHeader(userIdHeader) long userId) {
-        Logger.logRequest(HttpMethod.GET, "/items", "пусто");
-        return itemService.getAllItems(userId);
+    @PatchMapping("/{itemId}")
+    public ItemDto updateItem(@RequestHeader(USERID_HEADER) Long userId,
+                              @PathVariable Long itemId,
+                              @RequestBody ItemDto item) {
+        return itemService.updateItem(userId, itemId, item);
+    }
+
+    @DeleteMapping("/{itemId}")
+    public void deleteItem(@PathVariable Long itemId) {
+        itemService.deleteItem(itemId);
     }
 
     @GetMapping("/search")
     public List<ItemDto> searchItems(@RequestParam String text) {
-        Logger.logRequest(HttpMethod.GET, "/items/search?text=" + text, "пусто");
-        return itemService.searchItems(text).stream()
-                .map(itemMapper::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    @PatchMapping("{itemId}")
-    public ItemDto updateItem(@RequestHeader(userIdHeader) long userId, @PathVariable long itemId, @RequestBody ItemDto itemDto) {
-        Logger.logRequest(HttpMethod.PATCH, "/items/" + itemId, itemDto.toString());
-        Item item = itemMapper.convertFromDto(itemDto);
-        return itemMapper.convertToDto(itemService.updateItem(userId, itemId, item));
-    }
-
-    @DeleteMapping("{itemId}")
-    public void removeItem(@RequestHeader(userIdHeader) long userId, @PathVariable long itemId) {
-        Logger.logRequest(HttpMethod.DELETE, "/items/" + itemId, "пусто");
-        itemService.removeItem(userId, itemId);
-    }
-
-    @PostMapping("/{itemId}/comment")
-    public CommentDto addComment(@RequestHeader(userIdHeader) long userId, @PathVariable long itemId,
-                                 @RequestBody @Valid CommentDto commentDto) {
-        Logger.logRequest(HttpMethod.POST, "/items/" + itemId + "/comment", commentDto.toString());
-        Comment comment = commentMapper.convertFromDto(commentDto);
-        return commentMapper.convertToDto(itemService.addComment(userId, itemId, comment));
+        return itemService.searchItems(text);
     }
 }
