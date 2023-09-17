@@ -8,6 +8,7 @@ import ru.practicum.shareit.item.dto.ItemInfoDto;
 import ru.practicum.shareit.user.dto.UserInfoDto;
 
 public class BookingMapper {
+
     public static Booking toBooking(BookingDto booking) {
         return Booking.builder()
                 .id(booking.getId())
@@ -53,5 +54,4 @@ public class BookingMapper {
                 .bookerId(booking.getBooker().getId())
                 .build();
     }
-
 }
