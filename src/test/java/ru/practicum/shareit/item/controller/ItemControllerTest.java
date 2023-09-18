@@ -104,7 +104,7 @@ class ItemControllerTest {
         mockMvc.perform(post("/items", 1L)
                         .header("X-Sharer-User-Id", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(new ObjectMapper().writeValueAsString(itemDto)))
+                        .content(mapper.writeValueAsString(itemDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("itemName")))
@@ -119,7 +119,7 @@ class ItemControllerTest {
 
         mockMvc.perform(post("/items/{id}/comment", 1L)
                         .header("X-Sharer-User-Id", 1L)
-                        .content(new ObjectMapper().writeValueAsString(commentDto))
+                        .content(mapper.writeValueAsString(commentDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
@@ -140,7 +140,7 @@ class ItemControllerTest {
 
         mockMvc.perform(patch("/items/{itemId}", 1L)
                         .header("X-Sharer-User-Id", 1L)
-                        .content(new ObjectMapper().writeValueAsString(updatedItem))
+                        .content(mapper.writeValueAsString(updatedItem))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
@@ -151,7 +151,8 @@ class ItemControllerTest {
 
     @Test
     void deleteItem() throws Exception {
-        mockMvc.perform(delete("/items" + "/1"))
+        long itemId = 1;
+        mockMvc.perform(delete(String.format("/items/%d", itemId)))
                 .andExpect(status().isOk());
         verify(itemService, times(1))
                 .deleteItem(anyLong());

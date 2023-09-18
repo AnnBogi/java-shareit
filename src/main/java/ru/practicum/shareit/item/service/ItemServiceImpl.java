@@ -65,21 +65,23 @@ public class ItemServiceImpl implements ItemService {
         return itemInfoDto;
     }
 
+    @Transactional
     @Override
     public ItemDto addItem(Long userId, ItemDto item) {
         if (ItemValidator.itemCheck(item)) {
             throw new InvalidEntityException("Invalid item body.");
         }
+
         Item newItem = ItemMapper.toItem(item);
-        newItem.setOwner(userRepository.findById(userId).orElseThrow(() ->
-                new ObjectNotFoundException("Owner not found.")));
-        if (item.getRequestId() == null) {
-            return ItemMapper.toDto(repository.save(newItem));
+        newItem.setOwner(userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("Owner not found.")));
+
+        if (item.getRequestId() != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(item.getRequestId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Request not found."));
+            newItem.setRequest(itemRequest);
         }
-        ItemRequest itemRequest = itemRequestRepository.findById(item.getRequestId())
-                .orElseThrow(() ->
-                        new ObjectNotFoundException("Request not found."));
-        newItem.setRequest(itemRequest);
+
         return ItemMapper.toDto(repository.save(newItem));
     }
 
