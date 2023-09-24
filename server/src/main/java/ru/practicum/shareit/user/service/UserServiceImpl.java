@@ -1,69 +1,67 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpMethod;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import ru.practicum.shareit.exceptions.DataExistException;
-import ru.practicum.shareit.exceptions.ObjectNotFoundException;
-import ru.practicum.shareit.logger.Logger;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exceptions.DataNotFoundException;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static ru.practicum.shareit.user.mapper.UserMapper.toUserDto;
 
 @Service
-@AllArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
+
     private final UserRepository userRepository;
 
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     @Override
-    public User addUser(User user) {
-        try {
-            User userSaved = userRepository.save(user);
-            Logger.logSave(HttpMethod.POST, "/users", userSaved.toString());
-            return userSaved;
-        } catch (RuntimeException e) {
-            throw new DataExistException(String.format("Пользователь с email %s уже есть в базе", user.getEmail()));
+    public List<UserDto> getAll() {
+        List<UserDto> users = new ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            users.add(toUserDto(user));
         }
-
-    }
-
-    @Override
-    public User updateUser(long id, User user) {
-        try {
-            User targetUser = getUserById(id);
-            if (StringUtils.hasLength(user.getEmail())) {
-                targetUser.setEmail(user.getEmail());
-            }
-            if (StringUtils.hasLength(user.getName())) {
-                targetUser.setName(user.getName());
-            }
-            User userSaved = userRepository.save(targetUser);
-            Logger.logSave(HttpMethod.PATCH, "/users/" + id, userSaved.toString());
-            return userSaved;
-        } catch (RuntimeException e) {
-            throw new DataExistException(String.format("Пользователь с email %s уже есть в базе", user.getEmail()));
-        }
-    }
-
-    @Override
-    public User getUserById(long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new ObjectNotFoundException(String.format("Пользователь с id %s не найден", userId)));
-        Logger.logSave(HttpMethod.GET, "/users/" + userId, user.toString());
-        return user;
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        Logger.logSave(HttpMethod.GET, "/users", users.toString());
         return users;
     }
 
     @Override
-    public void removeUser(long id) {
+    public UserDto getById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new DataNotFoundException(String.format("Пользователь с id %d не найден", id)));
+        return toUserDto(user);
+    }
+
+    @Transactional
+    @Override
+    public UserDto create(User user) {
+        User createdUser = userRepository.save(user);
+        return toUserDto(createdUser);
+    }
+
+    @Transactional
+    @Override
+    public UserDto update(User user, Long id) {
+        User updatedUser = userRepository.findById(id).orElseThrow(
+                () -> new DataNotFoundException(String.format("Пользователь с id %d не найден", id)));
+        Optional.ofNullable(user.getEmail()).ifPresent(updatedUser::setEmail);
+        Optional.ofNullable(user.getName()).ifPresent(updatedUser::setName);
+
+        return toUserDto(userRepository.save(updatedUser));
+    }
+
+    @Transactional
+    @Override
+    public void delete(Long id) {
+        getById(id);
         userRepository.deleteById(id);
     }
 }
