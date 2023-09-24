@@ -17,7 +17,6 @@ import ru.practicum.shareit.exception.InvalidEntityException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.UnknownBookingState;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemJpaRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserJpaRepository;
 
