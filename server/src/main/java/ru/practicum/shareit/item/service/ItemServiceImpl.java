@@ -62,7 +62,7 @@ public class ItemServiceImpl implements ItemService {
         );
 
         List<Item> items = repository.findAllByOwnerIdOrderByIdAsc(userId, pageable).toList();
-        List<ItemDto> itemDtos = new ArrayList<>();
+        List<ItemDto> itemDto = new ArrayList<>();
 
         List<Booking> bookings = bookingRepository.findAllByItemIdAndEndBeforeOrderByStartAsc(itemDto.getId(), LocalDateTime.now());
 
@@ -79,7 +79,7 @@ public class ItemServiceImpl implements ItemService {
                 itemDto.setNextBooking(nextBookings.isEmpty() ? null : toBookingShortDto(nextBookings.get(0)));
             }
 
-            itemDtos.add(itemDto);
+            itemDto.add(itemDto);
         }
         return itemDtos;
     }
@@ -89,9 +89,9 @@ public class ItemServiceImpl implements ItemService {
         final LocalDateTime now = LocalDateTime.now();
         Item item = repository.findById(id).orElseThrow(() -> new DataNotFoundException(String.format("Предмет с id %d не найден", id)));
         List<Comment> comments = commentRepository.findAllByItemId(id);
-        List<CommentDto> commentDtos = comments.stream().map(CommentMapper::toCommentDto).collect(Collectors.toList());
+        List<CommentDto> commentDto = comments.stream().map(CommentMapper::toCommentDto).collect(Collectors.toList());
         ItemDto itemDto = toItemDto(item);
-        itemDto.setComments(commentDtos);
+        itemDto.setComments(commentDto);
         if (ownerId.equals(item.getOwner().getId())) {
             List<Booking> bookings = bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(id, ownerId, now);
             Booking lastBooking = bookings.isEmpty() ? null : bookings.get(0);
