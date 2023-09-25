@@ -44,16 +44,16 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(
                 () -> new DataNotFoundException("Предмет не найден"));
         if (userId.equals(item.getOwner().getId())) {
-            log.error("Невозможно создать бронирование своей же ввещи");
-            throw new DataNotFoundException("Невозможно создать бронирование своей же ввещи");
+            log.debug("Невозможно создать бронирование своей же вещи");
+            throw new DataNotFoundException("Невозможно создать бронирование своей же вещи");
         }
         if (!item.getAvailable()) {
-            log.error("Данная вещь недоступна");
+            log.debug("Данная вещь недоступна");
             throw new BookingIsNotAvailableException("Данная вещь недоступна");
         }
         Booking booking = toBooking(bookingDto, item, user);
         if (booking.getEnd().isBefore(booking.getStart()) || booking.getStart().equals(booking.getEnd())) {
-            log.error("Дата окончания бронирования не может быть больше даты начала или равна 0");
+            log.debug("Дата окончания бронирования не может быть больше даты начала или равна 0");
             throw new BookingIsNotAvailableException("Дата окончания бронирования не может быть больше даты начала или равна 0");
         }
         booking.setStatus(Status.WAITING);
@@ -65,7 +65,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponseDto approve(Long bookingId, Long ownerId, Boolean approve) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
                 new DataNotFoundException("Бронирование не найдено"));
-        if (booking.getItem().getOwner().getId() != ownerId) {
+        if (!ownerId.equals(booking.getItem().getOwner().getId())) {
             log.error("Бронирование у пользователя с id {} не найдено", ownerId);
             throw new DataNotFoundException(String.format("Бронирование у пользователя с id %d не найдено", ownerId));
         }
