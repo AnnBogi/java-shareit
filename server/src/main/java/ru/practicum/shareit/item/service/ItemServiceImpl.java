@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exceptions.BadRequestException;
@@ -52,59 +51,53 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> findAll(Long userId, int from, int size) {
         if (from < 0 || size <= 0) {
-            throw new BadRequestException("Не правильно переданы параметры поиска, индекс первого элемента не может быть меньше нуля а размер страницы должен быть больше нуля");
+            throw new BadRequestException("Не правильно переданы параметры поиска, индекс первого элемента не может" +
+                    " быть меньше нуля а размер страницы должен быть больше нуля");
         }
-
-        final Pageable pageable = PageRequest.of(from == 0 ? 0 : (from / size), size);
-        Page<Item> itemPage = repository.findAllByOwnerIdOrderByIdAsc(userId, pageable);
-        List<Item> items = itemPage.toList();
-
+        final Pageable pageable = PageRequest.of(
+                from == 0 ? 0 : (from / size),
+                size
+        );
+        List<Item> items = repository.findAllByOwnerIdOrderByIdAsc(userId, pageable).toList();
         List<ItemDto> itemDtos = new ArrayList<>();
         for (Item item : items) {
             ItemDto itemDto = toItemDto(item);
-            List<CommentDto> comments = commentRepository.findAllByItemId(itemDto.getId()).stream()
-                    .map(CommentMapper::toCommentDto)
-                    .collect(Collectors.toList());
-            itemDto.setComments(comments);
-
-            List<Booking> lastBookings = bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(itemDto.getId(), userId, LocalDateTime.now());
-            itemDto.setLastBooking(lastBookings.isEmpty() ? null : toBookingShortDto(lastBookings.get(0)));
-
+            itemDto.setComments(commentRepository.findAllByItemId(itemDto.getId()).stream().map(CommentMapper::toCommentDto)
+                    .collect(Collectors.toList()));
+            itemDto.setLastBooking(bookingRepository.findAllByItemIdAndEndBeforeOrderByStartAsc(itemDto.getId(),
+                    LocalDateTime.now()).isEmpty() ? null :
+                    toBookingShortDto(bookingRepository.findAllByItemIdAndEndBeforeOrderByStartAsc(itemDto.getId(),
+                            LocalDateTime.now()).get(0)));
             if (itemDto.getLastBooking() != null) {
-                List<Booking> nextBookings = bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(), LocalDateTime.now());
-                itemDto.setNextBooking(nextBookings.isEmpty() ? null : toBookingShortDto(nextBookings.get(0)));
+                itemDto.setNextBooking(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(),
+                        LocalDateTime.now()).isEmpty() ? null :
+                        toBookingShortDto(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(),
+                                LocalDateTime.now()).get(0)));
             }
-
             itemDtos.add(itemDto);
         }
-
         return itemDtos;
     }
 
     @Override
     public ItemDto findById(Long id, Long ownerId) {
         final LocalDateTime now = LocalDateTime.now();
-
         Item item = repository.findById(id).orElseThrow(
                 () -> new DataNotFoundException(String.format("Предмет с id %d не найден", id)));
-
         ItemDto itemDto = toItemDto(item);
-        List<CommentDto> comments = commentRepository.findAllByItemId(id).stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
-
-        itemDto.setComments(comments);
-
+        itemDto.setComments(commentRepository.findAllByItemId(id).stream().map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList()));
         if (ownerId.equals(item.getOwner().getId())) {
-            List<Booking> lastBookings = bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(id, ownerId, now);
-            itemDto.setLastBooking(lastBookings.isEmpty() ? null : toBookingShortDto(lastBookings.get(0)));
-
+            itemDto.setLastBooking(bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(id,
+                    ownerId, now).isEmpty() ? null :
+                    toBookingShortDto(bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(id,
+                            ownerId, now).get(0)));
             if (itemDto.getLastBooking() != null) {
-                List<Booking> nextBookings = bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(id, now);
-                itemDto.setNextBooking(nextBookings.isEmpty() ? null : toBookingShortDto(nextBookings.get(0)));
+                itemDto.setNextBooking(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(),
+                        LocalDateTime.now()).isEmpty() ? null :
+                        toBookingShortDto(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(id, now).get(0)));
             }
         }
-
         return itemDto;
     }
 
