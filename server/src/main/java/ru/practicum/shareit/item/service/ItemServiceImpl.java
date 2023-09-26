@@ -91,17 +91,19 @@ public class ItemServiceImpl implements ItemService {
         Item item = repository.findById(id).orElseThrow(
                 () -> new DataNotFoundException(String.format("Предмет с id %d не найден", id)));
         ItemDto itemDto = toItemDto(item);
-        itemDto.setComments(commentRepository.findAllByItemId(id).stream().map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList()));
+        List<CommentDto> comments = commentRepository.findAllByItemId(id).stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+
+        itemDto.setComments(comments);
+
         if (ownerId.equals(item.getOwner().getId())) {
-            itemDto.setLastBooking(bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(id,
-                    ownerId, now).isEmpty() ? null :
-                    toBookingShortDto(bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(id,
-                            ownerId, now).get(0)));
+            List<Booking> lastBookings = bookingRepository.findAllByItemIdAndItemOwnerIdAndStartBeforeOrderByEndDesc(id, ownerId, now);
+            itemDto.setLastBooking(lastBookings.isEmpty() ? null : toBookingShortDto(lastBookings.get(0)));
+
             if (itemDto.getLastBooking() != null) {
-                itemDto.setNextBooking(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(),
-                        LocalDateTime.now()).isEmpty() ? null :
-                        toBookingShortDto(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(id, now).get(0)));
+                List<Booking> nextBookings = bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(id, now);
+                itemDto.setNextBooking(nextBookings.isEmpty() ? null : toBookingShortDto(nextBookings.get(0)));
             }
         }
         return itemDto;
