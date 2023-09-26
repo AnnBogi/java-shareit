@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exceptions.BadRequestException;
@@ -54,28 +55,33 @@ public class ItemServiceImpl implements ItemService {
             throw new BadRequestException("Не правильно переданы параметры поиска, индекс первого элемента не может" +
                     " быть меньше нуля а размер страницы должен быть больше нуля");
         }
+
         final Pageable pageable = PageRequest.of(
                 from == 0 ? 0 : (from / size),
                 size
         );
+
         List<Item> items = repository.findAllByOwnerIdOrderByIdAsc(userId, pageable).toList();
         List<ItemDto> itemDtos = new ArrayList<>();
+
+        List<Booking> bookings = bookingRepository.findAllByItemIdAndEndBeforeOrderByStartAsc(itemDto.getId(), LocalDateTime.now());
+
+        List<Booking> nextBookings = bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(), LocalDateTime.now());
+
         for (Item item : items) {
             ItemDto itemDto = toItemDto(item);
+
             itemDto.setComments(commentRepository.findAllByItemId(itemDto.getId()).stream().map(CommentMapper::toCommentDto)
                     .collect(Collectors.toList()));
-            itemDto.setLastBooking(bookingRepository.findAllByItemIdAndEndBeforeOrderByStartAsc(itemDto.getId(),
-                    LocalDateTime.now()).isEmpty() ? null :
-                    toBookingShortDto(bookingRepository.findAllByItemIdAndEndBeforeOrderByStartAsc(itemDto.getId(),
-                            LocalDateTime.now()).get(0)));
+            itemDto.setLastBooking(bookings.isEmpty() ? null : toBookingShortDto(bookings.get(0)));
+
             if (itemDto.getLastBooking() != null) {
-                itemDto.setNextBooking(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(),
-                        LocalDateTime.now()).isEmpty() ? null :
-                        toBookingShortDto(bookingRepository.findAllByItemIdAndStartAfterOrderByStartAsc(itemDto.getId(),
-                                LocalDateTime.now()).get(0)));
+                itemDto.setNextBooking(nextBookings.isEmpty() ? null : toBookingShortDto(nextBookings.get(0)));
             }
+
             itemDtos.add(itemDto);
         }
+
         return itemDtos;
     }
 
